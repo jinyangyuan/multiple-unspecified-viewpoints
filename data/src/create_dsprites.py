@@ -54,6 +54,7 @@ def main():
     back = np.zeros((config['image_height'], config['image_width'], 2), dtype=np.uint8)
     back[..., -1] = 255
     dsprites = np.load(config['path_in'])['imgs'] * 255
+    assert back.shape[:2] == dsprites.shape[-2:]
     with Pool(config['num_parallel']) as pool:
         objects = pool.map(convert_dsprites, dsprites)
     elements = {'back': back, 'objects': objects}

@@ -77,8 +77,12 @@ def create_dataset(config, elements, generate_layers):
             assert len(phase_param['range_scale']) == 2
             assert phase_param['range_scale'][0] <= phase_param['range_scale'][1]
         data_list = []
+        if phase in elements:
+            sub_elements = elements[phase]
+        else:
+            sub_elements = elements
         for _ in range(phase_param['num_data']):
-            layers = generate_layers(phase_param, elements)
+            layers = generate_layers(phase_param, sub_elements)
             image, segment, overlap = convert_layers(layers)
             data = {'image': image, 'segment': segment, 'overlap': overlap, 'layers': layers}
             data_list.append(data)
