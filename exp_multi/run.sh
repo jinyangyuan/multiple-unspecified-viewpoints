@@ -1,41 +1,60 @@
 #!/bin/bash
 
-function run_model_1 {
-    sub_idx=1
-    path_config='config_'$name'.yaml'
-    path_data=$folder_data'/'$name'_'$idx'_'$sub_idx'.h5'
-    folder_log='logs/'$name'_'$idx'_'$sub_idx
-    folder_out='outs/'$name'_'$idx'_'$sub_idx
-    python $run_file \
-        --path_config $path_config \
-        --path_data $path_data \
-        --folder_log $folder_log \
-        --folder_out $folder_out \
-        --train
+function run_model {
+    export CUDA_VISIBLE_DEVICES=${gpu_train_list}
+    num_gpus=$(( (${#CUDA_VISIBLE_DEVICES} + 1) / 2 ))
+    port=20000
+    torchrun \
+        --rdzv-backend=c10d \
+        --rdzv-endpoint=localhost:${port} \
+        --nnodes=1 \
+        --nproc-per-node=${num_gpus} \
+        ${run_file} \
+        --config-path ${config_path} \
+        --config-name ${config_name_prefix}_single \
+        data_name=${data_name}
+    torchrun \
+        --rdzv-backend=c10d \
+        --rdzv-endpoint=localhost:${port} \
+        --nnodes=1 \
+        --nproc-per-node=${num_gpus} \
+        ${run_file} \
+        --config-path ${config_path} \
+        --config-name ${config_name_prefix}_multi \
+        data_name=${data_name} \
+        predicting=false
+    export CUDA_VISIBLE_DEVICES=${gpu_test}
+    python \
+        ${run_file} \
+        --config-path ${config_path} \
+        --config-name ${config_name_prefix}_multi \
+        data_name=${data_name} \
+        training=false
 }
 
-function run_model_2 {
-    sub_idx=2
-    path_config='config_'$name'_complex.yaml'
-    path_data=$folder_data'/'$name'_'$idx'_'$sub_idx'.h5'
-    path_pretrain='outs/'$name'_'$idx'_1/save_2.pth'
-    folder_log='logs/'$name'_'$idx'_'$sub_idx
-    folder_out='outs/'$name'_'$idx'_'$sub_idx
-    python $run_file \
-        --path_config $path_config \
-        --path_data $path_data \
-        --path_pretrain $path_pretrain \
-        --folder_log $folder_log \
-        --folder_out $folder_out \
-        --train
-}
+run_file=../src/main.py
+config_path=../exp_multi
 
-run_file='../src/main.py'
-folder_data='../data'
+data_name=clevr
+config_name_prefix=config_blender
+gpu_train_list='0'
+gpu_test='0'
+run_model
 
-for name in 'clevr_multi' 'shop_multi'; do
-    for idx in 1 2; do
-        run_model_1
-        run_model_2
-    done
-done
+data_name=shop
+config_name_prefix=config_blender
+gpu_train_list='0'
+gpu_test='0'
+run_model
+
+# data_name=gso
+# config_name_prefix=config_kubric
+# gpu_train_list='0'
+# gpu_test='0'
+# run_model
+
+# data_name=shapenet
+# config_name_prefix=config_kubric
+# gpu_train_list='0'
+# gpu_test='0'
+# run_model

@@ -1,0 +1,124 @@
+data_name: ???
+sub_folder_ckpt: checkpoints
+debug: false
+training: true
+predicting: false
+resume: true
+use_timestamp: false
+num_tests: 5
+
+defaults:
+  - model: kubric
+  - _self_
+  - override hydra/job_logging: stdout
+
+hydra:
+  run:
+    dir: outputs/${data_name}_single
+  job:
+    chdir: true
+  output_subdir: config
+
+dataset:
+  path: ../data/${data_name}.h5
+  num_workers: 1
+  image_shape: [128, 128, 3]
+  num_views_min: 1
+  num_views_max: 1
+  num_views_all: 1
+  num_views_data: 8
+  batch_size:
+    train: 32
+    val: 32
+    test: 32
+    general: 32
+  data_slots:
+    train: 7
+    val: 7
+    test: 7
+    general: 11
+  infer_slots:
+    train: 7
+    val: 7
+    test: 7
+    general: 11
+
+model:
+  optimizer:
+    lr: 1.0e-4
+  scheduler:
+    lr_decay: 0.1
+    decay_steps: ${trainer.max_steps}
+    warmup_steps: 10000
+  loss:
+    normal_scale: 0.2
+    pres_alpha: 4.5
+    coef:
+      temp_pres:
+        step: []
+        value: [10.0, 5.0]
+        linear: [false]
+      temp_shp:
+        step: []
+        value: [10.0, 5.0]
+        linear: [false]
+      noise_scale:
+        step: []
+        value: [0.01, 0.05]
+        linear: [true]
+      noise_min:
+        step: [50000]
+        value: [0.0, 0.05, 0.0]
+        linear: [true, true]
+      noise_max:
+        step: [50000]
+        value: [0.0, 1.0, 1.0]
+        linear: [true, true]
+      ratio_imp_sdw:
+        step: [100000]
+        value: [0.99, 0.99, 0.0]
+        linear: [true, true]
+      ratio_mixture:
+        step: [100000]
+        value: [0.01, 0.01, 1.0]
+        linear: [true, true]
+      ratio_stick_breaking:
+        step: [100000]
+        value: [0.01, 0.01, 1.0]
+        linear: [true, true]
+      kld_bck:
+        step: []
+        value: [2.0, 2.0]
+        linear: [true]
+      reg_bck:
+        step: [25000]
+        value: [0.01, 0.0, 0.0]
+        linear: [true, true]
+      reg_pres:
+        step: [100000]
+        value: [0.0, 1.0e-4, 1.0e-4]
+        linear: [true, true]
+      reg_shp:
+        step: [100000]
+        value: [0.0, 1.0e-4, 1.0e-4]
+        linear: [true, true]
+      reg_sdw:
+        step: [100000]
+        value: [0.0, 1.0e-4, 1.0e-4]
+        linear: [true, true]
+      reg_sdw_ratio:
+        step: [100000]
+        value: [0.0, 1.0e-4, 1.0e-2]
+        linear: [true, true]
+      sched_kld:
+        step: [100000]
+        value: [0.0, 1.0, 1.0]
+        linear: [true, true]
+
+trainer:
+  precision: 32
+  max_steps: 200000
+  val_check_interval: 2000
+  log_every_n_steps: 100
+  log_num_images: 2
+  gradient_clip_norm: 5.0
