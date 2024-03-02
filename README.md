@@ -1,46 +1,26 @@
 ## Object-Centric Learning with Object Constancy (OCLOC)
 
-This is the code repository of the paper "Unsupervised Learning of Compositional Scene Representations from Multiple Unspecified Viewpoints".
+This is the code repository of the papers ["Unsupervised Learning of Compositional Scene Representations from Multiple Unspecified Viewpoints"](https://doi.org/10.1609/aaai.v36i8.20880) (initial commit) and ["Unsupervised Object-Centric Learning from Multiple Unspecified Viewpoints"](https://doi.org/10.1109/TPAMI.2023.3349174) (latest commit).
 
 ### Dependencies
 
-- pytorch == 2.0
-- pytorch_lightning == 2.0
-- hydra == 1.3
+- pytorch == 2.1
+- hydra-core == 1.3
 - omegaconf == 2.3
-- numpy == 1.24
+- numpy == 1.26
+- matplotlib == 3.8
+- imageio == 2.31
 - h5py == 3.9
-- pyyaml == 6.0
-- tensorboard == 2.14
-- scipy == 1.10
+- tensorboard == 2.12
+- scipy == 1.11
 - scikit-learn == 1.3
 
 ### Datasets
 
-Synthesize images in the CLEVR dataset using Blender. The tested version of Blender is 2.79.
+Download the datasets from https://huggingface.co/datasets/jinyangyuan/ocloc-data.
 
 ```bash
-cd ../image_generation_viewpoint_1
-./create_blend.sh
-./create_pngs.sh
-cd ../..
-```
-
-Synthesize images in the SHOP dataset using Blender. The tested version of Blender is 2.83.
-
-```bash
-cd ../image_generation_multi_1
-./create_blend.sh
-./create_pngs.sh
-cd ../..
-```
-
-Create datasets in the HDF5 format.
-
-```bash
-cd data
-./create_datasets.sh
-cd ..
+./download_datasets.sh
 ```
 
 ### Experiments

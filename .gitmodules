@@ -1,6 +1,3 @@
-[submodule "clevr-dataset-gen"]
-	path = clevr-dataset-gen
-	url = https://github.com/jinyangyuan/clevr-dataset-gen.git
-[submodule "shop-vrb-gen"]
-	path = shop-vrb-gen
-	url = https://github.com/jinyangyuan/shop-vrb-gen.git
+[submodule "ocloc-data"]
+	path = ocloc-data
+	url = https://huggingface.co/datasets/jinyangyuan/ocloc-data

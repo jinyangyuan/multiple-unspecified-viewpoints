@@ -1,60 +1,49 @@
 #!/bin/bash
 
-function run_model {
-    export CUDA_VISIBLE_DEVICES=${gpu_train_list}
-    num_gpus=$(( (${#CUDA_VISIBLE_DEVICES} + 1) / 2 ))
-    port=20000
-    torchrun \
-        --rdzv-backend=c10d \
-        --rdzv-endpoint=localhost:${port} \
-        --nnodes=1 \
-        --nproc-per-node=${num_gpus} \
-        ${run_file} \
-        --config-path ${config_path} \
-        --config-name ${config_name_prefix}_single \
-        data_name=${data_name}
-    torchrun \
-        --rdzv-backend=c10d \
-        --rdzv-endpoint=localhost:${port} \
-        --nnodes=1 \
-        --nproc-per-node=${num_gpus} \
-        ${run_file} \
-        --config-path ${config_path} \
-        --config-name ${config_name_prefix}_multi \
-        data_name=${data_name} \
-        predicting=false
-    export CUDA_VISIBLE_DEVICES=${gpu_test}
-    python \
-        ${run_file} \
-        --config-path ${config_path} \
-        --config-name ${config_name_prefix}_multi \
-        data_name=${data_name} \
-        training=false
+function run_training {
+    run_runs_name=num_runs_${mode}
+    num_runs=${!run_runs_name}
+    for (( idx_run = 0; idx_run < num_runs; idx_run = idx_run + 1 )); do
+        echo ${data_name}_${mode}_run_${idx_run}
+        torchrun \
+            --rdzv-backend=c10d \
+            --rdzv-endpoint=localhost:0 \
+            --nnodes=1 \
+            --nproc-per-node=${num_gpus} \
+            ${run_path} \
+            --config-path ${config_path} \
+            --config-name ${config_name_prefix}_${mode} \
+            data_name=${data_name} \
+            model.use_shadow=false \
+            hydra.run.dir=${folder_out}/${data_name}_${mode}_run_${idx_run}
+        echo
+    done
+    python ${config_path}/select_best.py \
+        --folder ${folder_out} \
+        --name ${data_name}_${mode} \
+        --num_runs ${num_runs}
 }
 
-run_file=../src/main.py
-config_path=../exp_multi_no_shadow
+export CUDA_VISIBLE_DEVICES='0'
+num_gpus=$(( (${#CUDA_VISIBLE_DEVICES} + 1) / 2 ))
 
-data_name=clevr
+run_path=../src/main.py
+config_path=../exp_multi
+folder_out=outputs
+
+num_runs_single=10
+num_runs_multi=5
+
 config_name_prefix=config_blender
-gpu_train_list='0'
-gpu_test='0'
-run_model
+for data_name in clevr shop; do
+    for mode in single multi; do
+        run_training
+    done
+done
 
-data_name=shop
-config_name_prefix=config_blender
-gpu_train_list='0'
-gpu_test='0'
-run_model
-
-# data_name=gso
-# config_name_prefix=config_kubric
-# gpu_train_list='0'
-# gpu_test='0'
-# run_model
-
-# data_name=shapenet
-# config_name_prefix=config_kubric
-# gpu_train_list='0'
-# gpu_test='0'
-# run_model
+config_name_prefix=config_kubric
+for data_name in gso shapenet; do
+    for mode in single multi; do
+        run_training
+    done
+done

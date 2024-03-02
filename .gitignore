@@ -131,3 +131,7 @@ dmypy.json
 .venv/
 
 # End of https://www.gitignore.io/api/python,jupyternotebook
+
+outputs*/
+*.h5
+*.pkl

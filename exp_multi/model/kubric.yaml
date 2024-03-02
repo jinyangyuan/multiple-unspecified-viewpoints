@@ -1,7 +1,5 @@
-seg_overlap: true
 use_shadow: true
 max_shadow_val: 0.8
-max_shadow_ratio: 0.5
 latent_view_size: 16
 latent_obj_size: 256
 latent_bck_size: 32
@@ -10,7 +8,7 @@ enc_img:
   kernel_list: [4, 5, 5, 5, 5]
   stride_list: [2, 1, 1, 1, 1]
   activation: silu
-enc_feat:
+enc_cvt:
   feature_list: [256, 256]
   activation: silu
 enc_slot:
